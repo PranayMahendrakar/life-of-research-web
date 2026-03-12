@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Life Of Research WEB — By Pranay Mahendrakar</title>
+<meta name="description" content="14-Agent Autonomous AI Research Lab — browser-based version of the PySide6 desktop app">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════ RESET & ROOT ═══════════════════ */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --amber:#f59e0b;--blue:#60a5fa;--purple:#e879f9;--green:#34d399;
+  --red:#f87171;--orange:#fb923c;--teal:#38bdf8;--violet:#a78bfa;
+  --yellow:#fbbf24;
+  --bg:#05050d;--bg2:#08081a;--bg3:#0c0c22;--bg4:#0e0e28;
+  --border:#1a1a38;--border2:#12122a;
+  --text:#c0cce0;--dim:#6a7a9a;--dimmer:#2a2a50;
+  --font:'JetBrains Mono',monospace;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;overflow:hidden}
+
+/* ═══════════════════ LAYOUT ═══════════════════ */
+#app{display:flex;flex-direction:column;height:100vh}
+
+/* HEADER */
+#header{
+  height:64px;background:#05050f;border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;padding:0 20px;gap:10px;flex-shrink:0;z-index:10;
+}
+#header .logo{font-size:26px;color:var(--amber);line-height:1}
+#header .title{font-size:18px;font-weight:900;color:#fff;letter-spacing:1px}
+#header .title span{color:var(--amber)}
+#header .badge{background:var(--amber);color:#000;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;letter-spacing:1px}
+#ticker{color:var(--dimmer);font-size:9px;flex:1;text-align:center;letter-spacing:2px}
+#session-timer{color:#1e1e48;font-size:12px;font-weight:700;transition:color .3s}
+#session-timer.active{color:var(--amber)}
+
+/* ACHIEVEMENT BANNER */
+#achievement-banner{
+  height:0;overflow:hidden;background:#0d0d18;border-bottom:1px solid transparent;
+  display:flex;align-items:center;gap:10px;padding:0 16px;
+  transition:height .3s ease,border-color .3s;font-size:11px;font-weight:700;flex-shrink:0;
+}
+
+/* MAIN BODY */
+#main{display:flex;flex:1;overflow:hidden}
+
+/* LEFT PANEL */
+#left{
+  width:300px;min-width:300px;background:#07070e;border-right:1px solid var(--border2);
+  display:flex;flex-direction:column;padding:14px;gap:8px;overflow-y:auto;flex-shrink:0;
+}
+#left::-webkit-scrollbar{width:4px}
+#left::-webkit-scrollbar-thumb{background:#1a1a38;border-radius:2px}
+
+.sec-label{font-size:8px;font-weight:700;letter-spacing:2px;color:var(--amber);margin-top:4px}
+.sec-label.blue{color:var(--teal)}
+.sec-label.green{color:var(--green)}
+
+input[type=text],input[type=password],textarea,select{
+  background:#0c0c1e;color:var(--text);border:1px solid var(--border);
+  border-radius:5px;padding:8px 10px;font-family:var(--font);font-size:11px;width:100%;
+  outline:none;transition:border-color .2s;
+}
+input:focus,textarea:focus,select:focus{border-color:var(--amber)}
+select option{background:#0c0c1e}
+textarea{resize:none;height:72px}
+
+#api-key{letter-spacing:2px}
+
+.row2{display:flex;gap:8px}
+.row2>*{flex:1}
+
+.loop-box{
+  background:#0c0c1e;border:1px solid var(--border);border-radius:8px;
+  padding:10px;display:flex;flex-direction:column;gap:8px;
+}
+.spin-row{display:flex;align-items:center;gap:6px}
+.spin-row label{color:#555;font-size:9px;flex:1}
+.spin-row input[type=number]{width:80px;flex:0 0 80px}
+.chk-row{display:flex;align-items:center;gap:8px;color:var(--violet);font-size:10px;cursor:pointer}
+.chk-row input{width:14px;height:14px;accent-color:var(--violet);cursor:pointer}
+
+.btn{
+  padding:10px 14px;border:none;border-radius:8px;font-family:var(--font);
+  font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;
+  transition:opacity .2s,transform .1s;width:100%;text-align:center;
+}
+.btn:hover:not(:disabled){opacity:0.88;transform:translateY(-1px)}
+.btn:active:not(:disabled){transform:translateY(0)}
+.btn:disabled{opacity:0.3;cursor:not-allowed}
+.btn-launch{
+  background:linear-gradient(90deg,#c05000,var(--amber));color:#000;
+  font-size:12px;height:48px;
+}
+.btn-abort{
+  background:#160404;color:var(--red);border:1px solid var(--red);
+}
+.btn-export{
+  background:#064014;color:var(--green);border:1px solid #0a5a1f;
+}
+
+/* CENTER PANEL */
+#center{
+  flex:1;background:#06060d;display:flex;flex-direction:column;overflow:hidden;
+}
+#center-bar{
+  height:38px;background:#090916;border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;
+}
+#center-bar .feed-label{color:var(--dimmer);font-size:9px;font-weight:700;letter-spacing:3px}
+#iter-label{color:#3a3a80;font-size:10px;font-weight:700;margin-left:auto}
+#wc-total{color:#202040;font-size:9px}
+
+/* GLOW BAR */
+.glow-bar-wrap{height:10px;background:#111128;flex-shrink:0;overflow:hidden;position:relative}
+.glow-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,#c05000,var(--amber));
+  transition:width .5s ease;position:relative}
+.glow-bar-fill::after{
+  content:'';position:absolute;inset:0;
+  box-shadow:0 0 8px var(--amber);opacity:.6;
+}
+
+/* CHAT AREA */
+#chat-scroll{flex:1;overflow-y:auto;padding:8px 8px 32px}
+#chat-scroll::-webkit-scrollbar{width:7px}
+#chat-scroll::-webkit-scrollbar-track{background:#09091a;border-radius:3px}
+#chat-scroll::-webkit-scrollbar-thumb{background:#1a1a38;border-radius:3px}
+#chat-inner{display:flex;flex-direction:column;gap:4px;min-height:100%}
+
+/* BUBBLE */
+.bubble{
+  border-radius:10px;margin:3px 4px;border-left:3px solid;
+  background:linear-gradient(180deg,#0e0e20,#090914);
+  border-top:1px solid;border-right:1px solid;border-bottom:1px solid;
+  animation:slideIn .25s ease;
+}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.bubble-header{
+  display:flex;align-items:center;gap:8px;padding:10px 14px 6px;
+}
+.bubble-icon{font-size:16px;width:22px;flex-shrink:0}
+.bubble-name{font-size:11px;font-weight:700}
+.bubble-role{font-size:9px;color:#2a2a4a;margin-left:2px}
+.bubble-time{margin-left:auto;font-size:8px;color:#1e1e3a}
+.bubble-tabs{display:flex;border-bottom:1px solid;margin:0 14px}
+.bubble-tab{
+  padding:3px 10px;font-size:9px;cursor:pointer;border-bottom:2px solid transparent;
+  color:#444;transition:color .2s,border-color .2s;
+}
+.bubble-tab.active{border-bottom-color:inherit;color:inherit}
+.bubble-content{padding:8px 14px;min-height:40px;max-height:420px;overflow-y:auto}
+.bubble-content::-webkit-scrollbar{width:4px}
+.bubble-content::-webkit-scrollbar-thumb{background:#1e1e3a;border-radius:2px}
+.bubble-md{font-size:12px;line-height:1.7;color:#b8c4d8}
+.bubble-raw{font-size:10px;color:#6a7a9a;white-space:pre-wrap;word-break:break-all;line-height:1.6}
+.bubble-footer{
+  display:flex;align-items:center;padding:4px 14px 8px;gap:6px;
+}
+.bubble-status{font-size:9px}
+.bubble-status.streaming{color:inherit}
+.bubble-status.done{color:var(--green);font-weight:700}
+.bubble-status.error{color:var(--red)}
+.bubble-wc{margin-left:auto;font-size:8px;color:#2a2a4a}
+
+/* ITER DIVIDER */
+.iter-div{
+  background:#0e0e28;border:1px solid #1e1e48;border-radius:6px;
+  padding:8px 16px;margin:12px 4px 4px;
+  font-size:10px;font-weight:700;color:#3a3a70;letter-spacing:3px;
+}
+
+/* MARKDOWN STYLES inside bubble */
+.bubble-md h1{color:inherit;font-size:16px;margin:12px 0 6px;border-bottom:2px solid;padding-bottom:4px}
+.bubble-md h2{color:inherit;font-size:14px;margin:10px 0 5px;border-bottom:1px solid;padding-bottom:3px}
+.bubble-md h3{color:inherit;font-size:13px;margin:8px 0 4px}
+.bubble-md h4{color:inherit;font-size:12px;margin:6px 0 3px}
+.bubble-md p{margin:3px 0;line-height:1.6}
+.bubble-md ul,ol{margin:4px 0;padding-left:20px}
+.bubble-md li{margin:2px 0}
+.bubble-md pre{background:#0a0a18;border-radius:6px;padding:10px 14px;overflow-x:auto;margin:6px 0}
+.bubble-md code{background:#0d1117;color:#a8d8a8;padding:1px 5px;border-radius:3px;font-family:var(--font);font-size:11px}
+.bubble-md pre code{background:none;padding:0;color:#a8d8a8}
+.bubble-md blockquote{border-left:3px solid;padding:4px 12px;margin:4px 0;background:rgba(255,255,255,.03);border-radius:0 4px 4px 0}
+.bubble-md table{border-collapse:collapse;width:100%;margin:8px 0;font-size:11px}
+.bubble-md th{padding:5px 8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);text-align:left;color:inherit}
+.bubble-md td{padding:4px 8px;border:1px solid rgba(255,255,255,.08);color:#b8c4d8}
+.bubble-md strong{color:#e2e8f0;font-weight:700}
+.bubble-md em{color:#cbd5e1;font-style:italic}
+.bubble-md hr{border:none;border-top:1px solid rgba(255,255,255,.1);margin:10px 0}
+.bubble-md mark{background:rgba(245,158,11,.2);color:var(--yellow);padding:0 3px;border-radius:2px}
+.bubble-md s{color:#555}
+.bubble-md a{color:var(--blue);text-decoration:underline}
+
+/* RIGHT PANEL */
+#right{
+  width:320px;min-width:320px;background:#07070e;
+  border-left:1px solid var(--border2);display:flex;flex-direction:column;
+  overflow:hidden;flex-shrink:0;
+}
+
+/* TABS */
+.tab-bar{
+  display:flex;background:#05050c;border-bottom:1px solid var(--border2);flex-shrink:0;
+}
+.tab-btn{
+  flex:1;padding:8px 4px;font-size:9px;font-weight:700;text-align:center;
+  color:#333;cursor:pointer;border-bottom:2px solid transparent;
+  transition:color .2s,border-color .2s;background:transparent;border-top:none;border-left:none;border-right:none;
+  font-family:var(--font);letter-spacing:1px;
+}
+.tab-btn.active{color:var(--amber);border-bottom-color:var(--amber);background:#0c0c1e}
+.tab-pane{display:none;flex:1;overflow-y:auto;padding:12px}
+.tab-pane.active{display:flex;flex-direction:column;gap:10px}
+.tab-pane::-webkit-scrollbar{width:4px}
+.tab-pane::-webkit-scrollbar-thumb{background:#1a1a38;border-radius:2px}
+
+/* SCORE RINGS */
+.rings-row{display:flex;justify-content:space-between;align-items:center}
+.ring-wrap{text-align:center}
+canvas.score-ring{display:block;margin:0 auto}
+.ring-val{font-size:9px;color:var(--dim);letter-spacing:2px;margin-top:2px;text-transform:uppercase}
+
+.panel-label{font-size:8px;font-weight:700;letter-spacing:2px}
+
+/* SCORE GRAPH */
+#score-graph{width:100%;height:150px;border-radius:6px;overflow:hidden}
+
+/* THRESHOLD */
+.thresh-row{display:flex;align-items:center;gap:6px}
+.thresh-label{font-size:9px;color:#333}
+.thresh-val{font-size:10px;font-weight:700;color:var(--green);margin-left:auto}
+
+/* PIPELINE */
+.pipe-item{display:flex;align-items:center;gap:6px;padding:3px 0}
+.pipe-icon{font-size:12px;width:18px;flex-shrink:0}
+.pipe-name{font-size:9px;flex:1;transition:color .3s}
+.pipe-pb{flex:0 0 40px;height:3px;background:#111;border-radius:1px;overflow:hidden}
+.pipe-pb-fill{height:100%;width:0%;border-radius:1px;transition:width .3s}
+.pipe-st{font-size:12px;color:#1a1a30;width:14px;text-align:right;transition:color .3s}
+
+.info-block{font-size:9px;color:#333;line-height:1.9}
+
+/* KNOWLEDGE GRAPH */
+#kg-canvas{width:100%;height:240px;border-radius:6px}
+
+/* MEMORY */
+#memory-select{margin-bottom:8px}
+#memory-view{
+  flex:1;background:#05050e;border:1px solid #111130;border-radius:4px;
+  padding:8px;overflow-y:auto;font-size:10px;color:#6a7a9a;line-height:1.6;min-height:200px;
+}
+#memory-view::-webkit-scrollbar{width:4px}
+#memory-view::-webkit-scrollbar-thumb{background:#1a1a38;border-radius:2px}
+
+/* STATUS BAR */
+#statusbar{
+  height:30px;background:#04040c;border-top:1px solid #0e0e28;
+  display:flex;align-items:center;padding:0 16px;gap:16px;flex-shrink:0;
+}
+#status-msg{font-size:9px;color:var(--dimmer)}
+#statusbar .right-info{margin-left:auto;font-size:8px;color:#181838}
+
+/* EXPORT MODAL */
+#export-modal{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);
+  z-index:100;align-items:center;justify-content:center;
+}
+#export-modal.open{display:flex}
+.modal-box{
+  background:#0c0c22;border:1px solid var(--border);border-radius:12px;
+  padding:24px;width:400px;display:flex;flex-direction:column;gap:12px;
+}
+.modal-title{font-size:14px;font-weight:700;color:#fff}
+.modal-subtitle{font-size:10px;color:var(--dim)}
+.modal-btns{display:flex;gap:8px;flex-wrap:wrap}
+.modal-btn{
+  flex:1;min-width:90px;padding:8px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--text);border-radius:6px;cursor:pointer;
+  font-family:var(--font);font-size:10px;text-align:center;transition:all .2s;
+}
+.modal-btn:hover{border-color:var(--amber);color:var(--amber)}
+.modal-close{align-self:flex-end;background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;font-family:var(--font)}
+
+/* SCROLLBAR GLOBAL */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#1a1a38;border-radius:3px}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- HEADER -->
+<div id="header">
+  <div class="logo">◈</div>
+  <div class="title">LIFE OF <span>RESEARCH</span></div>
+  <div class="badge">WEB v5.0</div>
+  <div id="ticker">◈ Life Of Research · By Pranay Mahendrakar · 14-Agent Pipeline</div>
+  <div id="session-timer">00:00:00</div>
+</div>
+
+<!-- ACHIEVEMENT BANNER -->
+<div id="achievement-banner">
+  <span id="ach-icon">🏆</span>
+  <span id="ach-text"></span>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+<!-- LEFT PANEL -->
+<div id="left">
+  <div class="sec-label">◈ API KEY</div>
+  <input type="password" id="api-key" placeholder="sk-...">
+
+  <div class="sec-label">◈ MODEL</div>
+  <select id="model-select">
+    <option>gpt-4o</option>
+    <option>gpt-4o-mini</option>
+    <option>gpt-4-turbo</option>
+    <option>gpt-3.5-turbo</option>
+  </select>
+
+  <div class="sec-label">◈ RESEARCH TOPIC</div>
+  <textarea id="topic" placeholder="e.g. Efficient KV Cache Optimization in Large Language Models"></textarea>
+
+  <div class="sec-label">◈ PAPER TYPE / CITATION</div>
+  <div class="row2">
+    <select id="paper-type">
+      <option>Original Research Paper</option>
+      <option>Survey Paper</option>
+      <option>Literature Review</option>
+      <option>Short Paper / Extended Abstract</option>
+      <option>Thesis Chapter</option>
+      <option>Research Proposal</option>
+    </select>
+    <select id="citation-style">
+      <option>IEEE</option>
+      <option>APA</option>
+      <option>ACM</option>
+      <option>Springer</option>
+      <option>NeurIPS</option>
+    </select>
+  </div>
+
+  <div class="sec-label blue">◈ LOOP SETTINGS</div>
+  <div class="loop-box">
+    <div class="spin-row">
+      <label>Max Loops:</label>
+      <input type="number" id="max-loops" value="3" min="1" max="8">
+    </div>
+    <div class="spin-row">
+      <label>Stop Score:</label>
+      <input type="number" id="stop-score" value="8.0" min="5" max="10" step="0.5">
+    </div>
+    <label class="chk-row">
+      <input type="checkbox" id="debate-mode" checked>
+      ⚔ Debate Mode
+    </label>
+  </div>
+
+  <div class="sec-label green">◈ EXPORT</div>
+  <select id="export-format">
+    <option>Markdown (.md)</option>
+    <option>HTML (.html)</option>
+    <option>Plain Text (.txt)</option>
+    <option>JSON (full data)</option>
+  </select>
+
+  <button class="btn btn-launch" id="btn-launch" onclick="startPipeline()">▶  LAUNCH RESEARCH LAB</button>
+  <button class="btn btn-abort" id="btn-abort" onclick="abortPipeline()" disabled>■  ABORT PIPELINE</button>
+  <button class="btn btn-export" id="btn-export" onclick="showExport()" disabled>⬇  EXPORT BEST PAPER</button>
+</div>
+
+<!-- CENTER PANEL -->
+<div id="center">
+  <div id="center-bar">
+    <span class="feed-label">◈  AGENT CONVERSATION FEED  —  LIVE STREAM</span>
+    <span id="wc-total">words: 0</span>
+    <span id="iter-label"></span>
+  </div>
+  <div class="glow-bar-wrap">
+    <div class="glow-bar-fill" id="glow-bar"></div>
+  </div>
+  <div id="chat-scroll">
+    <div id="chat-inner">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;height:60vh;color:#1a1a38;font-size:11px;letter-spacing:3px;">
+        ◈  CONFIGURE AND LAUNCH TO BEGIN
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div id="right">
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('scores',this)">★ SCORES</button>
+    <button class="tab-btn" onclick="switchTab('pipeline',this)">⚙ PIPELINE</button>
+    <button class="tab-btn" onclick="switchTab('graph',this)">🕸 GRAPH</button>
+    <button class="tab-btn" onclick="switchTab('memory',this)">🧠 MEMORY</button>
+  </div>
+
+  <!-- SCORES TAB -->
+  <div class="tab-pane active" id="tab-scores">
+    <div class="rings-row">
+      <div class="ring-wrap">
+        <canvas class="score-ring" id="ring-latest" width="100" height="100"></canvas>
+        <div class="ring-val">LATEST</div>
+      </div>
+      <div style="text-align:center">
+        <canvas id="score-graph" width="100" height="80" style="width:100px;height:80px"></canvas>
+      </div>
+      <div class="ring-wrap">
+        <canvas class="score-ring" id="ring-best" width="100" height="100"></canvas>
+        <div class="ring-val">BEST</div>
+      </div>
+    </div>
+    <div class="panel-label" style="color:var(--purple)">◈ SCORE PROGRESSION</div>
+    <canvas id="score-graph-full" width="296" height="140" style="width:100%;height:140px;border-radius:6px"></canvas>
+    <div class="thresh-row">
+      <span class="thresh-label">THRESHOLD:</span>
+      <span class="thresh-val" id="thresh-display">8.0/10</span>
+    </div>
+    <div class="glow-bar-wrap" style="border-radius:5px">
+      <div class="glow-bar-fill" id="score-bar" style="background:linear-gradient(90deg,#064014,var(--green))"></div>
+    </div>
+    <div id="achievements-list" style="display:flex;flex-direction:column;gap:4px"></div>
+  </div>
+
+  <!-- PIPELINE TAB -->
+  <div class="tab-pane" id="tab-pipeline">
+    <div class="panel-label" style="color:var(--blue)">◈ AGENT PIPELINE STATUS</div>
+    <div id="pipe-list"></div>
+    <div class="panel-label" style="color:var(--yellow);margin-top:8px">◈ SESSION</div>
+    <div class="info-block" id="info-block">Status: IDLE<br>Iterations: 0<br>Best Score: —</div>
+  </div>
+
+  <!-- GRAPH TAB -->
+  <div class="tab-pane" id="tab-graph">
+    <div class="panel-label" style="color:var(--green)">◈ KNOWLEDGE GRAPH</div>
+    <canvas id="kg-canvas" width="296" height="240"></canvas>
+  </div>
+
+  <!-- MEMORY TAB -->
+  <div class="tab-pane" id="tab-memory">
+    <div class="panel-label" style="color:var(--violet)">◈ AGENT MEMORY</div>
+    <select id="memory-select" onchange="updateMemoryView()"></select>
+    <div id="memory-view">Select an agent output above to preview...</div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- STATUS BAR -->
+<div id="statusbar">
+  <div id="status-msg">● IDLE  —  Configure API key and topic, then launch</div>
+  <div class="right-info">Life Of Research · By Pranay Mahendrakar · AGENTS: 11 · 14-STAGE AUTONOMOUS PIPELINE</div>
+</div>
+
+</div><!-- /app -->
+
+<!-- EXPORT MODAL -->
+<div id="export-modal">
+  <div class="modal-box">
+    <div class="modal-title">⬇ Export Best Paper</div>
+    <div class="modal-subtitle" id="export-subtitle">Score: — · Iteration: —</div>
+    <div class="modal-btns">
+      <button class="modal-btn" onclick="doExport('md')">📄 Markdown</button>
+      <button class="modal-btn" onclick="doExport('html')">🌐 HTML</button>
+      <button class="modal-btn" onclick="doExport('txt')">📝 Text</button>
+      <button class="modal-btn" onclick="doExport('json')">⚙ JSON</button>
+    </div>
+    <button class="modal-close" onclick="closeExport()">✕ Close</button>
+  </div>
+</div>
+<script>
+// ═══════════════════════════════════════════════════════════════
+//   AGENT DEFINITIONS
+// ═══════════════════════════════════════════════════════════════
+const AGENTS = [
+  {id:"director",name:"Research Director",role:"Topic Strategist",icon:"◈",color:"#f59e0b",
+   system:"You are a Research Director AI. Output detailed markdown.\n## RESEARCH DIRECTION\nCore Problem: [one crisp sentence]\nPaper Type: [as specified]\n## Paper Outline\n1. Abstract  2. Introduction  3. Background & Related Work  4. Methodology  5. Experiments & Results  6. Discussion  7. Conclusion  8. References\n## Research Sub-Questions\n- [4-6 focused sub-questions]\n## Keywords\n[6-10 comma-separated keywords]\n## Expected Contribution\n[3-4 sentences on novelty]\n## Recommended Baselines\n- [3-5 systems to compare against]"},
+  {id:"literature",name:"Literature Intelligence",role:"Scholar Agent",icon:"📚",color:"#38bdf8",
+   system:"You are a Literature Intelligence Agent. Output detailed markdown.\n## Literature Analysis\n### Key Related Works\n| Paper | Year | Core Contribution | Limitation |\n|-------|------|-------------------|------------|\n(List 8-12 papers with realistic titles)\n### Research Gap Identified\n[2-3 paragraphs on what is MISSING]\n### Citation List\n[1] Author et al., \"Title,\" Venue, Year. (10-15 references in specified citation style)"},
+  {id:"hypothesis",name:"Hypothesis Generator",role:"Scientific Reasoner",icon:"💡",color:"#fbbf24",
+   system:"You are a Scientific Hypothesis Generator. Output detailed markdown.\n## Scientific Hypotheses\nH1: [Primary hypothesis]  H2: [Secondary]  H3: [Alternative/null]\n## Experiment Design\n### Datasets\n- Dataset 1: [name, description, size, why chosen]\n### Baselines  ### Evaluation Metrics\n| Metric | Description | Target |\n### Expected Results\n| Method | Metric 1 | Metric 2 |"},
+  {id:"writer",name:"Academic Writer",role:"Paper Generator",icon:"✍",color:"#60a5fa",
+   system:"You are an Academic Writer AI. Write a complete full-length research paper in markdown. Include ALL sections: Abstract (150-200 words), Introduction, Background & Related Work, Methodology (with equations in $...$ notation), Experiments & Results (with tables), Discussion, Conclusion, References. Rules: minimum 2500 words, technical and precise, address ALL previous reviewer feedback."},
+  {id:"reviewer_methods",name:"Methods Reviewer",role:"Methodology Expert",icon:"⚗",color:"#f87171",
+   system:"You are a Methodology Expert Reviewer. Output structured markdown review.\n## Methodology Review\n### Algorithm Correctness  ### Equation Consistency  ### Experimental Validity\n| Criterion | Assessment | Score |\n### Missing Experiments  ### Technical Flaws\nMethods Score: X/10"},
+  {id:"reviewer_novelty",name:"Novelty Reviewer",role:"Originality Expert",icon:"🔭",color:"#c084fc",
+   system:"You are a Novelty and Originality Reviewer.\n## Novelty Review\n### Core Contribution Assessment  ### Overlap Analysis\n| Related Work | Overlap Level | Key Difference |\n### Novelty Scores\n| Dimension | Score | Comment |\nNovelty Score: X/10"},
+  {id:"reviewer_harsh",name:"Harsh Reviewer",role:"Conference Gatekeeper",icon:"⚡",color:"#fb923c",
+   system:"You are a HARSH NeurIPS/ICML/ICLR reviewer. Be brutally specific.\n## Harsh Conference Review\nDecision: [Strong Accept / Weak Reject / Reject]\n### Strengths  ### Critical Weaknesses\n> ⚠️ Major: [devastating critique]\n### Questions for Authors\nOverall Score: X/10\nConfidence: [Expert / High / Medium / Low]"},
+  {id:"defender",name:"Argument Defender",role:"Author Rebuttal",icon:"🛡",color:"#34d399",
+   system:"You are an Author Rebuttal Agent.\n## Author Rebuttal\n### Response to Methods Reviewer  ### Response to Novelty Reviewer  ### Response to Harsh Reviewer\n### Points Conceded ✓  ### Points Defended ✗\n### Summary"},
+  {id:"corrector",name:"Correction Engine",role:"Technical Editor",icon:"⚙",color:"#4ade80",
+   system:"You are a Technical Correction Engine. Fix EVERY conceded point. Write the COMPLETE corrected paper in markdown. Mark changes: [FIXED: reason] inline. Target 2500+ words."},
+  {id:"humanizer",name:"Humanization Engine",role:"Writing Naturalizer",icon:"🧬",color:"#a78bfa",
+   system:"You are a Humanization Engine. Transform AI-generated text to natural researcher writing. Replace AI patterns (e.g. 'This paper presents a novel' → 'In this work, we investigate'). Add researcher voice: hedging, first-person, natural transitions. Preserve ALL technical content. Output COMPLETE humanized paper in clean markdown."},
+  {id:"evaluator",name:"Journal Evaluator",role:"Quality Gate",icon:"★",color:"#e879f9",
+   system:"You are a Journal Quality Evaluator.\n## Final Evaluation\n### Quality Scorecard\n| Criterion | Score | Comment |\n|-----------|-------|---------|\n| Novelty | X/10 | |\n| Technical Rigor | X/10 | |\n| Experimental Validation | X/10 | |\n| Writing Quality | X/10 | |\n| Literature Coverage | X/10 | |\n| Reproducibility | X/10 | |\n### Publication Score: X.X/10\n### VERDICT\n> ✅ APPROVED / ⚠️ CONDITIONAL / ❌ NEEDS_REVISION\n> Score MUST be X.X format like 7.8/10"},
+];
+const AGENTS_MAP = Object.fromEntries(AGENTS.map(a=>[a.id,a]));
+const REVIEWER_IDS = ["reviewer_methods","reviewer_novelty","reviewer_harsh"];
+const ACHIEVEMENTS = [
+  {t:7.0,icon:"🌟",msg:"GOOD PAPER",color:"#f59e0b"},
+  {t:8.0,icon:"🏆",msg:"PUBLISHABLE QUALITY!",color:"#22c55e"},
+  {t:8.5,icon:"🚀",msg:"CONFERENCE READY!",color:"#60a5fa"},
+  {t:9.0,icon:"💎",msg:"OUTSTANDING RESEARCH!",color:"#e879f9"},
+  {t:9.5,icon:"👑",msg:"WORLD CLASS PAPER!",color:"#fbbf24"},
+];
+const TICKER_MSGS = [
+  "◈ Life Of Research WEB · By Pranay Mahendrakar · 14-Agent Pipeline",
+  "💡 Hypothesis Generator · Literature Intelligence · Debate Mode",
+  "📚 IEEE · APA · ACM · Springer · NeurIPS citation styles",
+  "★ Journal-quality evaluation with iterative improvement loop",
+  "🧬 Humanization Engine removes AI patterns from writing",
+  "⬇ Export to Markdown · HTML · Text · JSON with full data",
+];
+
+// ═══════════════════════════════════════════════════════════════
+//   STATE
+// ═══════════════════════════════════════════════════════════════
+let state = {
+  running:false, abortFlag:false, iteration:0, scores:[],
+  memory:{}, outputs:{}, bubbles:{},
+  bestPaper:"", bestScore:0, bestIter:0,
+  achShown:new Set(), totalWords:0, elapsed:0,
+};
+let currentController = null;
+
+// ═══════════════════════════════════════════════════════════════
+//   TIMER / TICKER
+// ═══════════════════════════════════════════════════════════════
+let tickerIdx = 0;
+setInterval(()=>{
+  tickerIdx=(tickerIdx+1)%TICKER_MSGS.length;
+  document.getElementById('ticker').textContent=TICKER_MSGS[tickerIdx];
+},4000);
+
+setInterval(()=>{
+  if(state.running) state.elapsed++;
+  const h=Math.floor(state.elapsed/3600),m=Math.floor((state.elapsed%3600)/60),s=state.elapsed%60;
+  const el=document.getElementById('session-timer');
+  el.textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  el.className=state.running?'active':'';
+},1000);
+
+// ═══════════════════════════════════════════════════════════════
+//   UI HELPERS
+// ═══════════════════════════════════════════════════════════════
+function sset(msg,color='#c0cce0'){
+  const el=document.getElementById('status-msg');
+  el.textContent=msg; el.style.color=color;
+}
+
+function setGlowBar(pct){
+  document.getElementById('glow-bar').style.width=pct+'%';
+}
+
+function setScoreBar(pct){
+  document.getElementById('score-bar').style.width=pct+'%';
+}
+
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function showAchievement(icon,text,color){
+  const b=document.getElementById('achievement-banner');
+  document.getElementById('ach-icon').textContent=icon;
+  document.getElementById('ach-text').textContent=text;
+  document.getElementById('ach-text').style.color=color;
+  b.style.height='36px'; b.style.borderColor=color+'60';
+  setTimeout(()=>{b.style.height='0';b.style.borderColor='transparent'},3500);
+}
+
+function updateWC(){
+  const total=Object.values(state.bubbles).reduce((s,b)=>s+(b.rawText||'').split(/\s+/).filter(Boolean).length,0);
+  document.getElementById('wc-total').textContent=`words generated: ${total.toLocaleString()}`;
+}
+
+function updateInfo(){
+  const bi=state.bestIter?'Iteration '+state.bestIter:'—';
+  const wc=Object.values(state.bubbles).reduce((s,b)=>s+(b.rawText||'').split(/\s+/).filter(Boolean).length,0);
+  document.getElementById('info-block').innerHTML=
+    `Status: ${state.running?'🔥 RUNNING':'✓ DONE'}<br>`+
+    `Iterations: ${state.iteration}<br>`+
+    `Best Score: ${state.bestScore.toFixed(1)}/10<br>`+
+    `Best Iter: ${bi}<br>`+
+    `Total Words: ${wc.toLocaleString()}<br>`+
+    `Threshold: ${document.getElementById('stop-score').value}/10`;
+  document.getElementById('info-block').style.color='#4a4a80';
+}
+
+function updateMemoryDropdown(){
+  const sel=document.getElementById('memory-select');
+  const cur=sel.value;
+  sel.innerHTML='';
+  Object.keys(state.memory).filter(k=>typeof state.memory[k]==='string'&&state.memory[k].length>20).forEach(k=>{
+    const o=document.createElement('option'); o.value=k; o.textContent=k; sel.appendChild(o);
+  });
+  if(cur&&state.memory[cur]) sel.value=cur;
+  updateMemoryView();
+}
+
+function updateMemoryView(){
+  const key=document.getElementById('memory-select').value;
+  const el=document.getElementById('memory-view');
+  if(key&&state.memory[key]) el.innerHTML=renderMd(String(state.memory[key]).slice(0,5000),'#a78bfa');
+  else el.textContent='Select an agent output above to preview...';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//   MARKDOWN RENDERER
+// ═══════════════════════════════════════════════════════════════
+function renderMd(text, accent='#60a5fa'){
+  // escape then process
+  const esc=(s)=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const inline=(s)=>{
+    let t=esc(s);
+    t=t.replace(/\*\*\*(.+?)\*\*\*/g,'<b><i>$1</i></b>');
+    t=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+    t=t.replace(/__(.+?)__/g,'<strong>$1</strong>');
+    t=t.replace(/\*(.+?)\*/g,'<em>$1</em>');
+    t=t.replace(/`(.+?)`/g,'<code>$1</code>');
+    t=t.replace(/~~(.+?)~~/g,'<s>$1</s>');
+    t=t.replace(/==(.+?)==/g,'<mark>$1</mark>');
+    return t;
+  };
+  const lines=text.split('\n');
+  let out='',inCode=false,inUl=false,inOl=false,inTable=false,codeBuf='';
+  const closeLists=()=>{
+    let x='';
+    if(inUl){x+='</ul>';inUl=false;}
+    if(inOl){x+='</ol>';inOl=false;}
+    return x;
+  };
+  for(let raw of lines){
+    const line=raw;
+    if(line.trim().startsWith('```')){
+      if(inCode){out+=esc(codeBuf)+'</code></pre>';inCode=false;codeBuf='';}
+      else{out+=closeLists();`<pre><code style="color:#a8d8a8">`;out+=`<pre style="background:#0a0a18;border-left:3px solid ${accent};padding:10px 14px;border-radius:6px;margin:6px 0;overflow-x:auto"><code>`;inCode=true;}
+      continue;
+    }
+    if(inCode){codeBuf+=raw+'\n';continue;}
+    if(line.startsWith('#### ')){out+=closeLists()+`<h4 style="color:${accent}">${inline(line.slice(5))}</h4>`;continue;}
+    if(line.startsWith('### ')){out+=closeLists()+`<h3 style="color:${accent};border-bottom:1px solid ${accent}40;padding-bottom:3px;margin:8px 0 4px">${inline(line.slice(4))}</h3>`;continue;}
+    if(line.startsWith('## ')){out+=closeLists()+`<h2 style="color:${accent};border-bottom:2px solid ${accent}60;padding-bottom:4px;margin:10px 0 5px">${inline(line.slice(3))}</h2>`;continue;}
+    if(line.startsWith('# ')){out+=closeLists()+`<h1 style="color:${accent};margin:12px 0 6px">${inline(line.slice(2))}</h1>`;continue;}
+    if(/^[-*_]{3,}$/.test(line.trim())){out+=closeLists()+`<hr style="border:none;border-top:1px solid ${accent}40;margin:10px 0">`;continue;}
+    if(line.includes('|')&&line.trim().startsWith('|')){
+      if(/^\|[-| :]+\|$/.test(line.trim()))continue;
+      if(!inTable){out+=closeLists()+'<table>';inTable=true;}
+      const cells=line.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(c=>c.trim());
+      const isHead=!out.endsWith('</tr>');
+      if(isHead){out+=`<tr>${cells.map(c=>`<th style="background:${accent}15;color:${accent}">${inline(c)}</th>`).join('')}</tr>`;}
+      else{out+=`<tr>${cells.map(c=>`<td>${inline(c)}</td>`).join('')}</tr>`;}
+      continue;
+    }else{if(inTable){out+='</table>';inTable=false;}}
+    if(line.startsWith('> ')){out+=closeLists()+`<blockquote style="border-left:3px solid ${accent};background:${accent}10">${inline(line.slice(2))}</blockquote>`;continue;}
+    if(/^[\s]*[-*+] /.test(line)){
+      if(!inUl){out+=closeLists()+'<ul>';inUl=true;}
+      out+=`<li>${inline(line.replace(/^[\s]*[-*+] /,''))}</li>`;continue;
+    }
+    if(/^[\s]*\d+\. /.test(line)){
+      if(!inOl){out+=closeLists()+'<ol>';inOl=true;}
+      out+=`<li>${inline(line.replace(/^[\s]*\d+\. /,''))}</li>`;continue;
+    }
+    out+=closeLists();
+    if(!line.trim()){out+='<div style="margin:3px 0"></div>';continue;}
+    out+=`<p style="margin:3px 0;line-height:1.6;color:#b8c4d8">${inline(line)}</p>`;
+  }
+  out+=closeLists();
+  if(inTable)out+='</table>';
+  if(inCode)out+=esc(codeBuf)+'</code></pre>';
+  return out;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//   CHAT BUBBLE FACTORY
+// ═══════════════════════════════════════════════════════════════
+function createBubble(agentId, iteration){
+  const ag=AGENTS_MAP[agentId];
+  const c=ag.color;
+  const iterTag=iteration?`  ·  Iter ${iteration}`:'';
+  const div=document.createElement('div');
+  div.className='bubble';
+  div.style.cssText=`border-color:${c}40;border-left-color:${c}`;
+  div.innerHTML=`
+    <div class="bubble-header">
+      <span class="bubble-icon">${ag.icon}</span>
+      <span class="bubble-name" style="color:${c}">${ag.name}${iterTag}</span>
+      <span class="bubble-role">/  ${ag.role}</span>
+      <span class="bubble-time" id="bt-${agentId}"></span>
+    </div>
+    <div class="bubble-tabs" style="border-color:${c}20">
+      <div class="bubble-tab active" style="color:${c};border-bottom-color:${c}" onclick="switchBubbleTab('${agentId}','md',this)">◈ RENDERED</div>
+      <div class="bubble-tab" onclick="switchBubbleTab('${agentId}','raw',this)">⟨⟩ RAW</div>
+    </div>
+    <div class="bubble-content" id="bc-${agentId}">
+      <div class="bubble-md" id="bmd-${agentId}"></div>
+      <div class="bubble-raw" id="braw-${agentId}" style="display:none"></div>
+    </div>
+    <div class="bubble-footer">
+      <span class="bubble-status streaming" style="color:${c}" id="bst-${agentId}">● STREAMING...</span>
+      <span class="bubble-wc" id="bwc-${agentId}"></span>
+    </div>
+  `;
+  const inner=document.getElementById('chat-inner');
+  // remove placeholder
+  if(inner.children.length===1&&inner.children[0].style.height==='60vh') inner.innerHTML='';
+  inner.appendChild(div);
+
+  // track
+  state.bubbles[agentId]={div, rawText:'', mdEl:div.querySelector('#bmd-'+agentId), rawEl:div.querySelector('#braw-'+agentId)};
+  scrollToBottom();
+  return state.bubbles[agentId];
+}
+
+function switchBubbleTab(agentId, tab, btn){
+  const b=state.bubbles[agentId]; if(!b) return;
+  b.div.querySelectorAll('.bubble-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  if(tab==='md'){b.mdEl.style.display='';b.rawEl.style.display='none';}
+  else{b.mdEl.style.display='none';b.rawEl.style.display='';}
+}
+
+function appendToBubble(agentId, token){
+  const b=state.bubbles[agentId]; if(!b) return;
+  b.rawText+=token;
+  b.rawEl.textContent=b.rawText;
+  const wc=b.rawText.split(/\s+/).filter(Boolean).length;
+  const wcEl=document.getElementById('bwc-'+agentId);
+  if(wcEl) wcEl.textContent=wc+' words';
+  // render MD every ~80 chars for perf
+  if(b.rawText.length%80===0||token.length>30){
+    const ag=AGENTS_MAP[agentId];
+    b.mdEl.innerHTML=renderMd(b.rawText, ag.color);
+    scrollToBottom();
+  }
+}
+
+function doneBubble(agentId){
+  const b=state.bubbles[agentId]; if(!b) return;
+  const ag=AGENTS_MAP[agentId];
+  b.mdEl.innerHTML=renderMd(b.rawText, ag.color);
+  const stEl=document.getElementById('bst-'+agentId);
+  const btEl=document.getElementById('bt-'+agentId);
+  const wcEl=document.getElementById('bwc-'+agentId);
+  if(stEl){stEl.textContent='✓ COMPLETE';stEl.className='bubble-status done';}
+  if(btEl) btEl.textContent=new Date().toLocaleTimeString('en',{hour12:false});
+  if(wcEl) wcEl.textContent=b.rawText.split(/\s+/).filter(Boolean).length+' words';
+  scrollToBottom();
+  updateWC();
+}
+
+function errorBubble(agentId, msg){
+  const stEl=document.getElementById('bst-'+agentId);
+  if(stEl){stEl.textContent='✗ '+msg.slice(0,80);stEl.className='bubble-status error';}
+}
+
+function scrollToBottom(){
+  const s=document.getElementById('chat-scroll');
+  requestAnimationFrame(()=>{s.scrollTop=s.scrollHeight;});
+}
+
+function addIterDiv(label){
+  const d=document.createElement('div'); d.className='iter-div'; d.textContent=label;
+  document.getElementById('chat-inner').appendChild(d);
+}
+
+function clearChat(){
+  state.bubbles={};
+  document.getElementById('chat-inner').innerHTML=
+    '<div style="flex:1;display:flex;align-items:center;justify-content:center;height:60vh;color:#1a1a38;font-size:11px;letter-spacing:3px;">◈  CONFIGURE AND LAUNCH TO BEGIN</div>';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//   PIPELINE STATUS PANEL
+// ═══════════════════════════════════════════════════════════════
+function buildPipeList(){
+  const el=document.getElementById('pipe-list');
+  el.innerHTML=AGENTS.map(ag=>`
+    <div class="pipe-item" id="pi-${ag.id}">
+      <span class="pipe-icon">${ag.icon}</span>
+      <span class="pipe-name" id="pn-${ag.id}" style="color:${ag.color}30">${ag.name}</span>
+      <div class="pipe-pb"><div class="pipe-pb-fill" id="ppb-${ag.id}" style="background:${ag.color}"></div></div>
+      <span class="pipe-st" id="pst-${ag.id}">○</span>
+    </div>
+  `).join('');
+}
+
+function setPipe(agentId, st){
+  const ag=AGENTS_MAP[agentId];
+  const pn=document.getElementById('pn-'+agentId);
+  const pst=document.getElementById('pst-'+agentId);
+  const ppb=document.getElementById('ppb-'+agentId);
+  if(!pn) return;
+  if(st==='running'){
+    pn.style.color=ag.color; pn.style.fontWeight='700';
+    pst.textContent='⟳'; pst.style.color=ag.color;
+    ppb.style.width='100%'; ppb.style.opacity='1';
+    ppb.style.animation='pulse 1s infinite';
+  } else if(st==='done'){
+    pn.style.color=ag.color+'80'; pn.style.fontWeight='400';
+    pst.textContent='✓'; pst.style.color='#22c55e';
+    ppb.style.width='0'; ppb.style.animation='none';
+  } else if(st==='error'){
+    pst.textContent='✗'; pst.style.color='#f87171';
+    ppb.style.animation='none';
+  }
+}
+
+function resetPipe(){
+  AGENTS.forEach(ag=>{
+    const pn=document.getElementById('pn-'+ag.id);
+    const pst=document.getElementById('pst-'+ag.id);
+    const ppb=document.getElementById('ppb-'+ag.id);
+    if(pn){pn.style.color=ag.color+'30'; pn.style.fontWeight='400';}
+    if(pst){pst.textContent='○'; pst.style.color='#1a1a30';}
+    if(ppb){ppb.style.width='0'; ppb.style.animation='none';}
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//   SCORE RINGS (Canvas)
+// ═══════════════════════════════════════════════════════════════
+let ringAnim=0;
+function drawRing(canvasId, value, color){
+  const c=document.getElementById(canvasId); if(!c) return;
+  const ctx=c.getContext('2d');
+  const w=c.width, h=c.height, cx=w/2, cy=h/2, r=w/2-10;
+  ctx.clearRect(0,0,w,h);
+  // bg ring
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.strokeStyle='#1a1a30'; ctx.lineWidth=6; ctx.stroke();
+  // value arc
+  if(value>0){
+    const span=(value/10)*Math.PI*2;
+    ctx.beginPath(); ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+span);
+    const alpha=Math.round(180+60*Math.sin(ringAnim));
+    ctx.strokeStyle=color; ctx.lineWidth=10;
+    ctx.lineCap='round';
+    ctx.globalAlpha=alpha/255;
+    ctx.stroke();
+    ctx.globalAlpha=1;
+    ctx.strokeStyle=color; ctx.lineWidth=6;
+    ctx.stroke();
+  }
+  // text
+  ctx.fillStyle=color; ctx.font='bold 18px JetBrains Mono';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(value>0?value.toFixed(1):'—', cx, cy-6);
+  ctx.font='7px JetBrains Mono'; ctx.fillStyle='#444';
+  ctx.fillText('/ 10', cx, cy+10);
+}
+
+let scoreGraphData=[];
+function addScoreToGraph(s){scoreGraphData.push(s); drawScoreGraph();}
+function clearScoreGraph(){scoreGraphData=[]; drawScoreGraph();}
+
+function drawScoreGraph(){
+  const c=document.getElementById('score-graph-full'); if(!c) return;
+  const ctx=c.getContext('2d');
+  const W=c.width, H=c.height, pad=30;
+  ctx.clearRect(0,0,W,H);
+  // bg
+  const gr=ctx.createLinearGradient(0,0,0,H);
+  gr.addColorStop(0,'#0a0a18'); gr.addColorStop(1,'#070710');
+  ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+  // grid
+  for(let i=0;i<=10;i+=2){
+    const y=pad+(H-2*pad)*(1-i/10);
+    ctx.strokeStyle='#151528'; ctx.lineWidth=1; ctx.setLineDash([2,4]);
+    ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(W-8,y); ctx.stroke();
+    ctx.setLineDash([]); ctx.fillStyle='#333'; ctx.font='7px JetBrains Mono';
+    ctx.fillText(i,2,y+4);
+  }
+  // threshold line at 8
+  const yt=pad+(H-2*pad)*(1-8/10);
+  ctx.strokeStyle='rgba(34,197,94,0.3)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(pad,yt); ctx.lineTo(W-8,yt); ctx.stroke();
+  ctx.setLineDash([]);
+  if(!scoreGraphData.length){
+    ctx.fillStyle='#252540'; ctx.font='9px JetBrains Mono'; ctx.textAlign='center';
+    ctx.fillText('Awaiting results...', W/2, H/2); ctx.textAlign='left'; return;
+  }
+  const n=scoreGraphData.length;
+  const step=n>1?(W-pad-12)/(n-1):0;
+  const pts=scoreGraphData.map((s,i)=>({x:pad+i*step, y:pad+(H-2*pad)*(1-s/10)}));
+  // area
+  if(pts.length>1){
+    ctx.beginPath(); ctx.moveTo(pts[0].x,H-pad);
+    pts.forEach(p=>ctx.lineTo(p.x,p.y));
+    ctx.lineTo(pts[pts.length-1].x,H-pad); ctx.closePath();
+    const ag=ctx.createLinearGradient(0,pad,0,H-pad);
+    ag.addColorStop(0,'rgba(232,121,249,0.25)'); ag.addColorStop(1,'rgba(232,121,249,0)');
+    ctx.fillStyle=ag; ctx.fill();
+  }
+  // line
+  ctx.strokeStyle='#e879f9'; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.lineCap='round';
+  ctx.beginPath(); pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y)); ctx.stroke();
+  // dots + labels
+  pts.forEach((p,i)=>{
+    const s=scoreGraphData[i];
+    const dc=s>=8?'#22c55e':s>=6.5?'#f59e0b':'#f87171';
+    ctx.beginPath(); ctx.arc(p.x,p.y,5,0,Math.PI*2);
+    ctx.fillStyle=dc; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=1; ctx.stroke();
+    ctx.fillStyle=dc; ctx.font='bold 8px JetBrains Mono'; ctx.textAlign='center';
+    ctx.fillText(s.toFixed(1),p.x,p.y-9);
+  });
+  ctx.textAlign='left';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//   KNOWLEDGE GRAPH
+// ═══════════════════════════════════════════════════════════════
+let kgNodes=[], kgEdges=[], kgAnim=0;
+function setKGTopic(topic){
+  const words=topic.split(/\s+/).filter(w=>w.length>3).slice(0,6);
+  const c=document.getElementById('kg-canvas');
+  const W=c.width, H=c.height;
+  kgNodes=[{id:0,label:topic.slice(0,16)+(topic.length>16?'…':''),x:W/2,y:H/2,color:'#f59e0b',size:14}];
+  kgEdges=[];
+  const colors=['#60a5fa','#e879f9','#34d399','#fb923c','#a78bfa','#38bdf8'];
+  words.forEach((w,i)=>{
+    const angle=(i/words.length)*Math.PI*2;
+    kgNodes.push({id:i+1,label:w,x:W/2+Math.cos(angle)*W*0.35,y:H/2+Math.sin(angle)*H*0.35,color:colors[i%6],size:9});
+    kgEdges.push({src:0,dst:i+1});
+  });
+}
+function drawKG(){
+  const c=document.getElementById('kg-canvas'); if(!c) return;
+  const ctx=c.getContext('2d');
+  const W=c.width, H=c.height;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#090915'; ctx.fillRect(0,0,W,H);
+  if(!kgNodes.length) return;
+  kgEdges.forEach(e=>{
+    const s=kgNodes[e.src], d=kgNodes[e.dst];
+    const alpha=Math.round(50+30*Math.sin(kgAnim+d.id));
+    ctx.strokeStyle=`rgba(96,165,250,${alpha/255})`; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(d.x,d.y); ctx.stroke();
+  });
+  kgNodes.forEach(n=>{
+    const pulse=Math.sin(kgAnim*1.5+n.id*0.8);
+    const r=n.size+(n.id===0?2*pulse:0);
+    // glow
+    ctx.beginPath(); ctx.arc(n.x,n.y,r+6,0,Math.PI*2);
+    const gc=n.color+'28'; ctx.fillStyle=gc; ctx.fill();
+    // node
+    ctx.beginPath(); ctx.arc(n.x,n.y,r,0,Math.PI*2);
+    ctx.fillStyle=n.color; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=1; ctx.stroke();
+    // label
+    ctx.fillStyle=n.color; ctx.font='8px JetBrains Mono'; ctx.textAlign='center';
+    ctx.fillText(n.label,n.x,n.y+r+12);
+  });
+  ctx.textAlign='left';
+}
+
+// Animation loop
+let animFrame;
+function animLoop(){
+  ringAnim+=0.03; kgAnim+=0.02;
+  drawRing('ring-latest', state.scores.length?state.scores[state.scores.length-1]:0, '#e879f9');
+  drawRing('ring-best', state.bestScore, '#22c55e');
+  drawKG();
+  animFrame=requestAnimationFrame(animLoop);
+}
+animLoop();
+
+// ═══════════════════════════════════════════════════════════════
+//   OPENAI STREAMING API CALL
+// ═══════════════════════════════════════════════════════════════
+async function callAgent(agentId, messages, onToken, onDone, onError){
+  const apiKey=document.getElementById('api-key').value.trim();
+  const model=document.getElementById('model-select').value;
+  currentController=new AbortController();
+  setPipe(agentId,'running');
+  createBubble(agentId, agentId==='writer'||agentId==='corrector'||agentId==='humanizer'||agentId==='evaluator'?state.iteration:null);
+  sset('◈  '+AGENTS_MAP[agentId].name+'  —  '+AGENTS_MAP[agentId].role+'...', AGENTS_MAP[agentId].color);
+  try{
+    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+      body:JSON.stringify({model,messages,max_tokens:3500,temperature:0.75,stream:true}),
+      signal:currentController.signal
+    });
+    if(!resp.ok){
+      const err=await resp.json(); throw new Error(err?.error?.message||'API error '+resp.status);
+    }
+    const reader=resp.body.getReader();
+    const dec=new TextDecoder();
+    let full='';
+    while(true){
+      const {done,value}=await reader.read();
+      if(done) break;
+      const chunk=dec.decode(value,{stream:true});
+      const lines=chunk.split('\n').filter(l=>l.startsWith('data: '));
+      for(const line of lines){
+        const d=line.slice(6);
+        if(d==='[DONE]') break;
+        try{
+          const tok=JSON.parse(d)?.choices?.[0]?.delta?.content||'';
+          if(tok){full+=tok; appendToBubble(agentId,tok);}
+        }catch{}
+      }
+    }
+    // check score
+    if(agentId==='evaluator'){
+      const m=full.match(/(\d+\.?\d*)\s*\/\s*10/);
+      if(m) onDone(agentId,full,parseFloat(m[1]));
+      else onDone(agentId,full,0);
+    } else {
+      onDone(agentId,full,null);
+    }
+  } catch(e){
+    if(e.name==='AbortError'){ onError(agentId,'Aborted'); return; }
+    onError(agentId,e.message||String(e));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//   PIPELINE ORCHESTRATION
+// ═══════════════════════════════════════════════════════════════
+function startPipeline(){
+  const api=document.getElementById('api-key').value.trim();
+  const topic=document.getElementById('topic').value.trim();
+  if(!api) return sset('⚠ Enter your OpenAI API key','#f87171');
+  if(!topic) return sset('⚠ Enter a research topic','#f87171');
+
+  state={
+    running:true, abortFlag:false, iteration:0, scores:[],
+    memory:{topic, paper_type:document.getElementById('paper-type').value, citation_style:document.getElementById('citation-style').value},
+    outputs:{}, bubbles:{}, bestPaper:'', bestScore:0, bestIter:0,
+    achShown:new Set(), totalWords:0, elapsed:0,
+  };
+  clearChat(); resetPipe(); clearScoreGraph();
+  setGlowBar(0); setScoreBar(0);
+  document.getElementById('glow-bar').style.background='linear-gradient(90deg,#c05000,#f59e0b)';
+  document.getElementById('thresh-display').textContent=document.getElementById('stop-score').value+'/10';
+  document.getElementById('memory-select').innerHTML='';
+  document.getElementById('btn-launch').disabled=true;
+  document.getElementById('btn-abort').disabled=false;
+  document.getElementById('btn-export').disabled=true;
+  document.getElementById('achievements-list').innerHTML='';
+  setKGTopic(topic);
+
+  runDirector();
+}
+
+function abortPipeline(){
+  state.abortFlag=true;
+  if(currentController) currentController.abort();
+  sset('■ Aborting pipeline...','#f87171');
+}
+
+function finishPipeline(aborted){
+  state.running=false;
+  document.getElementById('btn-launch').disabled=false;
+  document.getElementById('btn-abort').disabled=true;
+  document.getElementById('btn-export').disabled=aborted||!state.bestPaper;
+  if(!aborted) setGlowBar(100);
+  updateInfo();
+}
+
+function onPipelineError(agentId, msg){
+  errorBubble(agentId, msg);
+  setPipe(agentId,'error');
+  sset('✗ ERROR in ['+AGENTS_MAP[agentId].name+']: '+msg.slice(0,120),'#f87171');
+  finishPipeline(true);
+}
+
+function onScore(score, agentId, fullText){
+  state.scores.push(score);
+  addScoreToGraph(score);
+  if(score>state.bestScore){
+    state.bestScore=score; state.bestIter=state.iteration;
+    state.bestPaper=state.memory.humanizer||'';
+  }
+  setScoreBar(Math.min(score/10*100,100));
+  // achievements
+  ACHIEVEMENTS.forEach(a=>{
+    if(score>=a.t&&!state.achShown.has(a.t)){
+      state.achShown.add(a.t);
+      showAchievement(a.icon, 'ACHIEVEMENT: '+a.msg, a.color);
+      const pill=document.createElement('div');
+      pill.style.cssText=`padding:4px 8px;border-radius:100px;font-size:9px;font-weight:700;border:1px solid ${a.color}40;color:${a.color};background:${a.color}08`;
+      pill.textContent=a.icon+' '+a.msg+' ('+score.toFixed(1)+'/10)';
+      document.getElementById('achievements-list').appendChild(pill);
+    }
+  });
+  updateInfo();
+}
+
+// ── Phase runners ──
+function runDirector(){
+  if(state.abortFlag) return finishPipeline(true);
+  callAgent('director',[
+    {role:'system',content:AGENTS_MAP.director.system},
+    {role:'user',content:`Research Topic: "${state.memory.topic}"\nPaper Type: ${state.memory.paper_type}\nCitation Style: ${state.memory.citation_style}\nCreate research direction plan.`}
+  ],null,(id,text)=>{state.memory.director=text;doneBubble(id);setPipe(id,'done');updateMemoryDropdown();runLiterature();},onPipelineError);
+}
+function runLiterature(){
+  if(state.abortFlag) return finishPipeline(true);
+  callAgent('literature',[
+    {role:'system',content:AGENTS_MAP.literature.system},
+    {role:'user',content:`Topic: "${state.memory.topic}"\nPlan:\n${state.memory.director}\nGenerate literature analysis with ${state.memory.citation_style} citations.`}
+  ],null,(id,text)=>{state.memory.literature=text;doneBubble(id);setPipe(id,'done');updateMemoryDropdown();runHypothesis();},onPipelineError);
+}
+function runHypothesis(){
+  if(state.abortFlag) return finishPipeline(true);
+  callAgent('hypothesis',[
+    {role:'system',content:AGENTS_MAP.hypothesis.system},
+    {role:'user',content:`Topic: "${state.memory.topic}"\nPlan:\n${state.memory.director}\nLiterature:\n${state.memory.literature}\nGenerate hypotheses and experiment design.`}
+  ],null,(id,text)=>{state.memory.hypothesis=text;doneBubble(id);setPipe(id,'done');updateMemoryDropdown();startLoop();},onPipelineError);
+}
+
+function startLoop(){
+  if(state.abortFlag) return finishPipeline(true);
+  state.iteration++;
+  state.outputs[state.iteration]={};
+  const maxL=parseInt(document.getElementById('max-loops').value)||3;
+  document.getElementById('iter-label').textContent=`ITERATION  ${state.iteration}  /  ${maxL}`;
+  addIterDiv(`⟳  LOOP ITERATION  ${state.iteration}  ·  TARGET ${document.getElementById('stop-score').value}/10`);
+  setGlowBar(Math.round(state.iteration/maxL*100));
+  // reset loop agents
+  ['writer','reviewer_methods','reviewer_novelty','reviewer_harsh','defender','corrector','humanizer','evaluator'].forEach(id=>{
+    const pn=document.getElementById('pn-'+id); const pst=document.getElementById('pst-'+id); const ppb=document.getElementById('ppb-'+id);
+    if(pn){pn.style.color=AGENTS_MAP[id].color+'30';pn.style.fontWeight='400';}
+    if(pst){pst.textContent='○';pst.style.color='#1a1a30';}
+    if(ppb){ppb.style.width='0';}
+  });
+  let prev='';
+  if(state.iteration>1){
+    prev=`\n\n---\n### Previous Reviewer Feedback (MUST address ALL points):\n\n**Methods Review:**\n${state.memory.reviewer_methods||''}\n\n**Novelty Review:**\n${state.memory.reviewer_novelty||''}\n\n**Harsh Review:**\n${state.memory.reviewer_harsh||''}\n\n**Rebuttal:**\n${state.memory.defender||''}`;
+  }
+  callAgent('writer',[
+    {role:'system',content:AGENTS_MAP.writer.system},
+    {role:'user',content:`Topic: "${state.memory.topic}"\nType: ${state.memory.paper_type}\nCitation: ${state.memory.citation_style}\n\nResearch Plan:\n${state.memory.director}\n\nLiterature:\n${state.memory.literature}\n\nHypotheses:\n${state.memory.hypothesis}`+prev}
+  ],null,(id,text)=>{
+    state.memory.writer_current=text; state.outputs[state.iteration].writer=text;
+    doneBubble(id); setPipe(id,'done'); runReviewMethods();
+  },onPipelineError);
+}
+
+function runReviewMethods(){
+  if(state.abortFlag) return finishPipeline(true);
+  callAgent('reviewer_methods',[
+    {role:'system',content:AGENTS_MAP.reviewer_methods.system},
+    {role:'user',content:'Review this paper:\n\n'+state.memory.writer_current}
+  ],null,(id,text)=>{
+    state.memory.reviewer_methods=text; state.outputs[state.iteration].reviewer_methods=text;
+    doneBubble(id); setPipe(id,'done'); runReviewNovelty();
+  },onPipelineError);
+}
+function runReviewNovelty(){
+  if(state.abortFlag) return finishPipeline(true);
+  callAgent('reviewer_novelty',[
+    {role:'system',content:AGENTS_MAP.reviewer_novelty.system},
+    {role:'user',content:'Review this paper:\n\n'+state.memory.writer_current}
+  ],null,(id,text)=>{
+    state.memory.reviewer_novelty=text; state.outputs[state.iteration].reviewer_novelty=text;
+    doneBubble(id); setPipe(id,'done'); runReviewHarsh();
+  },onPipelineError);
+}
+function runReviewHarsh(){
+  if(state.abortFlag) return finishPipeline(true);
+  callAgent('reviewer_harsh',[
+    {role:'system',content:AGENTS_MAP.reviewer_harsh.system},
+    {role:'user',content:'Review this paper:\n\n'+state.memory.writer_current}
+  ],null,(id,text)=>{
+    state.memory.reviewer_harsh=text; state.outputs[state.iteration].reviewer_harsh=text;
+    doneBubble(id); setPipe(id,'done');
+    if(document.getElementById('debate-mode').checked) runDefender();
+    else runCorrector();
+  },onPipelineError);
+}
+function runDefender(){
+  if(state.abortFlag) return finishPipeline(true);
+  callAgent('defender',[
+    {role:'system',content:AGENTS_MAP.defender.system},
+    {role:'user',content:`Paper:\n${state.memory.writer_current}\n\nMethods Review:\n${state.memory.reviewer_methods}\n\nNovelty Review:\n${state.memory.reviewer_novelty}\n\nHarsh Review:\n${state.memory.reviewer_harsh}`}
+  ],null,(id,text)=>{
+    state.memory.defender=text; state.outputs[state.iteration].defender=text;
+    doneBubble(id); setPipe(id,'done'); runCorrector();
+  },onPipelineError);
+}
+function runCorrector(){
+  if(state.abortFlag) return finishPipeline(true);
+  callAgent('corrector',[
+    {role:'system',content:AGENTS_MAP.corrector.system},
+    {role:'user',content:`Draft:\n${state.memory.writer_current}\n\nMethods Review:\n${state.memory.reviewer_methods||''}\n\nNovelty Review:\n${state.memory.reviewer_novelty||''}\n\nHarsh Review:\n${state.memory.reviewer_harsh||''}\n\nRebuttal:\n${state.memory.defender||'Skipped.'}`}
+  ],null,(id,text)=>{
+    state.memory.corrector=text; state.outputs[state.iteration].corrector=text;
+    doneBubble(id); setPipe(id,'done'); runHumanizer();
+  },onPipelineError);
+}
+function runHumanizer(){
+  if(state.abortFlag) return finishPipeline(true);
+  callAgent('humanizer',[
+    {role:'system',content:AGENTS_MAP.humanizer.system},
+    {role:'user',content:'Humanize this paper:\n\n'+state.memory.corrector}
+  ],null,(id,text)=>{
+    state.memory.humanizer=text; state.outputs[state.iteration].humanizer=text;
+    doneBubble(id); setPipe(id,'done'); runEvaluator();
+  },onPipelineError);
+}
+function runEvaluator(){
+  if(state.abortFlag) return finishPipeline(true);
+  callAgent('evaluator',[
+    {role:'system',content:AGENTS_MAP.evaluator.system},
+    {role:'user',content:`Final paper:\n${state.memory.humanizer}\n\nMethods review:\n${state.memory.reviewer_methods||''}\n\nNovelty review:\n${state.memory.reviewer_novelty||''}\n\nHarsh review:\n${state.memory.reviewer_harsh||''}\n\nGive final publication score.`}
+  ],null,(id,text,score)=>{
+    state.memory.evaluator=text; state.outputs[state.iteration].evaluator=text;
+    doneBubble(id); setPipe(id,'done');
+    if(score) onScore(score, id, text);
+    updateMemoryDropdown();
+    const threshold=parseFloat(document.getElementById('stop-score').value)||8;
+    const maxL=parseInt(document.getElementById('max-loops').value)||3;
+    const sc=state.scores.length?state.scores[state.scores.length-1]:0;
+    if(state.abortFlag) return finishPipeline(true);
+    if(sc>=threshold){
+      sset(`✓ COMPLETE — Score ${sc.toFixed(1)} reached ${threshold} threshold after ${state.iteration} iteration(s)!`,'#22c55e');
+      showAchievement('🎯','LIFE OF RESEARCH — Target Score Reached!','#22c55e');
+      finishPipeline(false);
+    } else if(state.iteration>=maxL){
+      sset(`✓ MAX LOOPS — Best: ${state.bestScore.toFixed(1)}/10 at iteration ${state.bestIter}`,'#f59e0b');
+      finishPipeline(false);
+    } else {
+      sset(`⟳ Score ${sc.toFixed(1)} < ${threshold} — launching iteration ${state.iteration+1}...`,'#60a5fa');
+      setTimeout(startLoop,700);
+    }
+  },onPipelineError);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//   EXPORT
+// ═══════════════════════════════════════════════════════════════
+function showExport(){
+  const modal=document.getElementById('export-modal');
+  document.getElementById('export-subtitle').textContent=
+    `Score: ${state.bestScore.toFixed(1)}/10  ·  Iteration: ${state.bestIter}  ·  Topic: ${(state.memory.topic||'').slice(0,50)}`;
+  modal.classList.add('open');
+}
+function closeExport(){ document.getElementById('export-modal').classList.remove('open'); }
+
+function doExport(fmt){
+  const topic=state.memory.topic||'Research Paper';
+  const ts=new Date().toISOString().slice(0,16).replace('T','_').replace(':','-');
+  const paper=state.bestPaper||state.memory.humanizer||state.memory.corrector||'No paper generated yet.';
+  const bi=state.bestIter, bs=state.bestScore;
+  const it=state.outputs[bi]||{};
+  const reviews=Object.fromEntries(REVIEWER_IDS.map(r=>[r,it[r]||'']));
+
+  let content='', filename='', mime='';
+
+  if(fmt==='md'){
+    filename=`research_${ts}.md`; mime='text/markdown';
+    content=`# Research Paper: ${topic}\n\n*Life Of Research WEB · By Pranay Mahendrakar · ${ts} · Score: ${bs.toFixed(1)}/10 · Iter ${bi}*\n\n---\n\n## Research Direction\n\n${state.memory.director||''}\n\n---\n\n## Literature Analysis\n\n${state.memory.literature||''}\n\n---\n\n## Hypotheses & Experiments\n\n${state.memory.hypothesis||''}\n\n---\n\n## Final Paper — Iteration ${bi}\n\n${paper}\n\n---\n\n`;
+    REVIEWER_IDS.forEach(r=>{ content+=`## ${AGENTS_MAP[r].name}\n\n${reviews[r]}\n\n---\n\n`; });
+    content+=`## Final Evaluation\n\n${it.evaluator||''}`;
+  } else if(fmt==='html'){
+    filename=`research_${ts}.html`; mime='text/html';
+    const e=(s)=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    let secs='';
+    [['Research Direction',state.memory.director||''],['Literature Analysis',state.memory.literature||''],
+     ['Hypotheses & Experiments',state.memory.hypothesis||''],[('Final Paper — Iter '+bi),paper],
+     ['Methods Review',reviews.reviewer_methods||''],['Novelty Review',reviews.reviewer_novelty||''],
+     ['Harsh Review',reviews.reviewer_harsh||''],['Final Evaluation',it.evaluator||'']
+    ].forEach(([t,c])=>{ secs+=`<h2>${e(t)}</h2><pre>${e(c)}</pre>\n`; });
+    content=`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>${e(topic)}</title>
+<style>body{font-family:Georgia,serif;max-width:1000px;margin:40px auto;padding:24px;line-height:1.9;background:#fffdf7;color:#1a1a2e}
+h1{text-align:center;color:#1a237e;font-size:28px}h2{color:#c05000;border-bottom:2px solid #c05000;padding-bottom:6px;margin-top:40px}
+.meta{text-align:center;color:#888;margin-bottom:40px}.score{background:#c05000;color:#fff;padding:3px 14px;border-radius:20px;font-weight:bold}
+pre{background:#f5f5fb;padding:18px;border-radius:8px;white-space:pre-wrap;word-break:break-word;border-left:4px solid #c05000;font-family:'Courier New',monospace;font-size:12px}
+</style></head><body><h1>${e(topic)}</h1>
+<div class="meta">Life Of Research WEB · By Pranay Mahendrakar · ${ts} · <span class="score">Score ${bs.toFixed(1)}/10</span></div>
+${secs}</body></html>`;
+  } else if(fmt==='txt'){
+    filename=`research_${ts}.txt`; mime='text/plain';
+    const sep='═'.repeat(80)+'\n';
+    content=`RESEARCH PAPER: ${topic}\n${sep}Generated: ${ts}  |  Score: ${bs.toFixed(1)}/10  |  Iter ${bi}\n${sep}\nRESEARCH DIRECTION\n${sep}${state.memory.director||''}\n\nLITERATURE ANALYSIS\n${sep}${state.memory.literature||''}\n\nFINAL PAPER\n${sep}${paper}\n\n`;
+    REVIEWER_IDS.forEach(r=>{ content+=AGENTS_MAP[r].name.toUpperCase()+'\n'+sep+(reviews[r]||'')+'\n\n'; });
+    content+='FINAL EVALUATION\n'+sep+(it.evaluator||'');
+  } else {
+    filename=`research_${ts}.json`; mime='application/json';
+    content=JSON.stringify({
+      topic, generated:ts, bestScore:bs, bestIteration:bi,
+      memory:state.memory, outputs:state.outputs
+    }, null, 2);
+  }
+
+  const blob=new Blob([content],{type:mime+';charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
+  closeExport();
+  sset(`✓ Exported → ${filename}`,'#22c55e');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//   INIT
+// ═══════════════════════════════════════════════════════════════
+buildPipeList();
+drawScoreGraph();
+
+// Add pulse animation CSS
+const style=document.createElement('style');
+style.textContent=`
+@keyframes pulse{0%{opacity:.4}50%{opacity:1}100%{opacity:.4}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+`;
+document.head.appendChild(style);
+
+console.log('Life Of Research WEB v5.0 — By Pranay Mahendrakar — Ready!');
+</script>
+</body>
+</html>
